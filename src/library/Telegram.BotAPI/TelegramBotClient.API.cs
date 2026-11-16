@@ -25,7 +25,18 @@ public partial class TelegramBotClient : ITelegramBotClient
     // Cache them once; property values are still read for each request.
     private static readonly ConcurrentDictionary<Type, MultipartPropertyMetadata[]> MultipartPropertyCache = new();
 
-    private sealed record MultipartPropertyMetadata(PropertyInfo Property, string? JsonName);
+    private sealed class MultipartPropertyMetadata
+    {
+        public MultipartPropertyMetadata(PropertyInfo property, string? jsonName)
+        {
+            this.Property = property;
+            this.JsonName = jsonName;
+        }
+
+        public PropertyInfo Property { get; }
+
+        public string? JsonName { get; }
+    }
 
     private static MultipartPropertyMetadata[] GetMultipartProperties(Type type) =>
         MultipartPropertyCache.GetOrAdd(
