@@ -1,0 +1,29 @@
+name: Experimental benchmarks
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experimental/performance-benchmarks
+    paths:
+      - 'src/benchmarks/Telegram.BotAPI.Benchmarks/**'
+      - 'src/library/Telegram.BotAPI/**'
+      - '.github/workflows/experimental-benchmarks.yml'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Run BenchmarkDotNet
+        run: dotnet run -c Release --project src/benchmarks/Telegram.BotAPI.Benchmarks -- --filter '*DiscriminatorBenchmarks*'
+      - name: Upload benchmark reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-botapi-benchmarks
+          path: BenchmarkDotNet.Artifacts/**
+          if-no-files-found: error
+          retention-days: 30
