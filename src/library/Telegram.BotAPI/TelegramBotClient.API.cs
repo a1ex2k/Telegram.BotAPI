@@ -152,32 +152,38 @@ public partial class TelegramBotClient : ITelegramBotClient
             };
         }
 
-        HttpResponseMessage? response = await this
+        // The request owns its content (including multipart file streams), so dispose it
+        // after SendAsync and response processing. The response owns the response stream.
+        using (requestMessage)
+        using (HttpResponseMessage response = await this
             .options.HttpClient.SendAsync(requestMessage, cancellationToken)
-            .ConfigureAwait(false);
-
-        try
+            .ConfigureAwait(false))
         {
-            response.EnsureSuccessStatusCode();
-        }
-        catch (HttpRequestException)
-        {
-            if (response.Content.Headers.ContentType.MediaType != "application/json")
+            try
             {
-                throw;
+                response.EnsureSuccessStatusCode();
             }
+            catch (HttpRequestException)
+            {
+                if (response.Content.Headers.ContentType.MediaType != "application/json")
+                {
+                    throw;
+                }
+            }
+
+            using Stream responseStream = await response.Content
+                .ReadAsStreamAsync(cancellationToken)
+                .ConfigureAwait(false);
+            BotResponse<TReturn>? botResponse = await JsonSerializer
+                .DeserializeAsync<BotResponse<TReturn>>(
+                    responseStream,
+                    SerializerOptions,
+                    cancellationToken
+                )
+                .ConfigureAwait(false);
+
+            return botResponse ?? throw new JsonException("Cannot deserialize the response.");
         }
-
-        Stream? responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        BotResponse<TReturn>? botResponse = await JsonSerializer
-            .DeserializeAsync<BotResponse<TReturn>>(
-                responseStream,
-                SerializerOptions,
-                cancellationToken
-            )
-            .ConfigureAwait(false);
-
-        return botResponse ?? throw new JsonException("Cannot deserialize the response.");
     }
 
     private static MultipartFormDataContent CreateFormDataFromObject(object args)
