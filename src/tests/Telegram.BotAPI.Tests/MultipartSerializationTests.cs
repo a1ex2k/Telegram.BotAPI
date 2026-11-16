@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -17,14 +16,31 @@ public sealed class MultipartSerializationTests
     [Fact]
     public async Task PocoArguments_IncludeFileAndJsonNamedFields()
     {
-        string? body = null;
+        Dictionary<string, string> fields = new();
+        Dictionary<string, string> filenames = new();
         string? mediaType = null;
+
         using HttpClient httpClient = CreateHttpClient(async request =>
         {
             mediaType = request.Content?.Headers.ContentType?.MediaType;
-            using MemoryStream stream = new();
-            await request.Content!.CopyToAsync(stream);
-            body = Encoding.UTF8.GetString(stream.ToArray());
+            foreach (HttpContent part in request.Content!)
+            {
+                string? name = part.Headers.ContentDisposition?.Name?.Trim('"');
+                if (name is null)
+                {
+                    continue;
+                }
+
+                string? filename = part.Headers.ContentDisposition?.FileName?.Trim('"');
+                if (filename is not null)
+                {
+                    filenames[name] = filename;
+                }
+                else
+                {
+                    fields[name] = await part.ReadAsStringAsync();
+                }
+            }
         });
 
         TelegramBotClient client = new(new TelegramBotClientOptions("test-token", httpClient));
@@ -39,22 +55,37 @@ public sealed class MultipartSerializationTests
 
         Assert.True(response.Ok);
         Assert.Equal("multipart/form-data", mediaType);
-        Assert.Contains("name=chat_id", body);
-        Assert.Contains("123", body);
-        Assert.Contains("name=caption", body);
-        Assert.Contains("hello", body);
-        Assert.Contains("filename=\"sample.bin\"", body);
+        Assert.Equal("123", fields["chat_id"]);
+        Assert.Equal("hello", fields["caption"]);
+        Assert.Equal("sample.bin", filenames["document"]);
     }
 
     [Fact]
     public async Task DictionaryArguments_IncludeInputFile()
     {
-        string? body = null;
+        Dictionary<string, string> fields = new();
+        Dictionary<string, string> filenames = new();
+
         using HttpClient httpClient = CreateHttpClient(async request =>
         {
-            using MemoryStream stream = new();
-            await request.Content!.CopyToAsync(stream);
-            body = Encoding.UTF8.GetString(stream.ToArray());
+            foreach (HttpContent part in request.Content!)
+            {
+                string? name = part.Headers.ContentDisposition?.Name?.Trim('"');
+                if (name is null)
+                {
+                    continue;
+                }
+
+                string? filename = part.Headers.ContentDisposition?.FileName?.Trim('"');
+                if (filename is not null)
+                {
+                    filenames[name] = filename;
+                }
+                else
+                {
+                    fields[name] = await part.ReadAsStringAsync();
+                }
+            }
         });
 
         TelegramBotClient client = new(new TelegramBotClientOptions("test-token", httpClient));
@@ -67,9 +98,8 @@ public sealed class MultipartSerializationTests
         BotResponse<bool> response = await client.CallMethodDirectAsync<bool>("sendDocument", args);
 
         Assert.True(response.Ok);
-        Assert.Contains("name=chat_id", body);
-        Assert.Contains("456", body);
-        Assert.Contains("filename=\"dict.bin\"", body);
+        Assert.Equal("456", fields["chat_id"]);
+        Assert.Equal("dict.bin", filenames["document"]);
     }
 
     private static HttpClient CreateHttpClient(Func<HttpRequestMessage, Task> inspect)
