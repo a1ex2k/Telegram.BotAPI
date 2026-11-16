@@ -49,6 +49,7 @@ public abstract class LegacyMember
 
 public sealed class LegacyMemberBasic : LegacyMember
 {
+    [JsonPropertyName("status")]
     public override string Status => "member";
 
     [JsonPropertyName("id")]
@@ -63,6 +64,7 @@ public sealed class LegacyMemberBasic : LegacyMember
 
 public sealed class LegacyMemberWithRole : LegacyMember
 {
+    [JsonPropertyName("status")]
     public override string Status => "member";
 
     [JsonPropertyName("id")]
@@ -141,6 +143,7 @@ public abstract class GeneratedMember
 
 public sealed class GeneratedMemberBasic : GeneratedMember
 {
+    [JsonPropertyName("status")]
     public override string Status => "member";
 
     [JsonPropertyName("id")]
@@ -155,6 +158,7 @@ public sealed class GeneratedMemberBasic : GeneratedMember
 
 public sealed class GeneratedMemberWithRole : GeneratedMember
 {
+    [JsonPropertyName("status")]
     public override string Status => "member";
 
     [JsonPropertyName("id")]
