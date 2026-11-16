@@ -1,6 +1,6 @@
 # Telegram.BotAPI benchmarks
 
-This project is an experimental benchmark harness, not a production implementation.
+This project is an experimental benchmark harness. The experimental branch also contains a production-side multipart metadata cache; neither change has been merged into the default branch.
 
 ## Run
 
@@ -42,11 +42,15 @@ are part of what this baseline exposes, not a claim about an optimized implement
 
 1. Port the discriminator prototype to actual polymorphic Telegram model types, with parity
    tests covering every discriminator and ambiguous subtype.
-2. Use the multipart metadata benchmark to decide whether a production cache or generated
-   metadata path is justified; add tests for dictionaries, nulls, nested JSON fields, and
-   multiple files before changing production.
+2. The experimental multipart metadata cache is now implemented in the POCO path. Regression
+   tests cover POCO and dictionary file uploads; extend coverage to nulls, nested JSON fields,
+   multiple files, and custom/dynamic argument types before considering the change merge-ready.
 3. Add comparative transport prototypes only after establishing this real-client baseline.
 4. Add bounded update-processing throughput tests separately from raw JSON parsing.
 
 Do not mix first-use initialization with warmed steady-state numbers. Add cold-start benchmarks
-separately when startup cost is a target. No production code is modified by this benchmark suite.
+separately when startup cost is a target. The benchmark project itself does not modify production code. The experimental branch separately
+contains a private metadata cache in `TelegramBotClient.API.cs`; it preserves the public API and
+leaves dictionary handling unchanged. Its cache uses strong `Type` keys, so applications that
+supply unbounded dynamically generated argument types could retain those types for the process
+lifetime. This is a low-likelihood but real trade-off to revisit before merging.
