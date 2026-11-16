@@ -1,3 +1,5 @@
 using BenchmarkDotNet.Running;
 
-BenchmarkRunner.Run<DiscriminatorBenchmarks>();
+BenchmarkSwitcher
+    .FromAssembly(typeof(DiscriminatorBenchmarks).Assembly)
+    .Run(args);
