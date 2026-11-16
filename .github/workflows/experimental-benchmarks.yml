@@ -18,8 +18,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - name: Run BenchmarkDotNet
-        run: dotnet run -c Release --project src/benchmarks/Telegram.BotAPI.Benchmarks -- --filter '*DiscriminatorBenchmarks*'
+      - name: Run all benchmark suites
+        run: dotnet run -c Release --project src/benchmarks/Telegram.BotAPI.Benchmarks -- --filter '*Benchmarks*'
       - name: Upload benchmark reports
         uses: actions/upload-artifact@v4
         with:
