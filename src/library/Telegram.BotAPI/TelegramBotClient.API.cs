@@ -2,6 +2,7 @@
 // Licensed under the MIT License, See LICENCE in the project root for license information.
 
 using System.Collections;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -19,6 +20,25 @@ public partial class TelegramBotClient : ITelegramBotClient
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     };
+
+    // Property discovery and JsonPropertyNameAttribute lookup are invariant for an argument type.
+    // Cache them once; property values are still read for each request.
+    private static readonly ConcurrentDictionary<Type, MultipartPropertyMetadata[]> MultipartPropertyCache = new();
+
+    private sealed record MultipartPropertyMetadata(PropertyInfo Property, string? JsonName);
+
+    private static MultipartPropertyMetadata[] GetMultipartProperties(Type type) =>
+        MultipartPropertyCache.GetOrAdd(
+            type,
+            static argumentType =>
+                argumentType
+                    .GetProperties()
+                    .Select(property => new MultipartPropertyMetadata(
+                        property,
+                        property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name
+                    ))
+                    .ToArray()
+        );
 
     private async Task<TResult?> CallApiMethodAndGetResultAsync<TResult>(
         string method,
@@ -195,41 +215,32 @@ public partial class TelegramBotClient : ITelegramBotClient
         }
         else
         {
-            PropertyInfo[] properties = args.GetType().GetProperties();
-
-            foreach (PropertyInfo? property in properties)
+            foreach (MultipartPropertyMetadata metadata in GetMultipartProperties(args.GetType()))
             {
-                object? value = property.GetValue(args);
+                object? value = metadata.Property.GetValue(args);
                 if (value is null)
                 {
                     continue;
                 }
 
-                JsonPropertyNameAttribute? jsonAttribute =
-                    property.GetCustomAttribute<JsonPropertyNameAttribute>();
-                if (jsonAttribute is not null)
+                if (metadata.JsonName is not null)
                 {
                     if (value.GetType().IsPrimitive || value is string)
                     {
-                        content.Add(new StringContent(value.ToString()), jsonAttribute.Name);
+                        content.Add(new StringContent(value.ToString()), metadata.JsonName);
                     }
                     else if (value is InputFile inputFile)
                     {
-                        content.Add(inputFile.Content, jsonAttribute.Name, inputFile.Filename);
+                        content.Add(inputFile.Content, metadata.JsonName, inputFile.Filename);
                     }
                     else
                     {
                         string json = JsonSerializer.Serialize(value, SerializerOptions);
-                        content.Add(new StringContent(json, Encoding.UTF8), jsonAttribute.Name);
+                        content.Add(new StringContent(json, Encoding.UTF8), metadata.JsonName);
                     }
                 }
-                else
+                else if (value is IDictionary<string, InputFile> files)
                 {
-                    if (value is not IDictionary<string, InputFile> files)
-                    {
-                        continue;
-                    }
-
                     foreach (KeyValuePair<string, InputFile> file in files)
                     {
                         content.Add(file.Value.Content, file.Key, file.Value.Filename);
@@ -262,11 +273,9 @@ public partial class TelegramBotClient : ITelegramBotClient
         }
         else
         {
-            PropertyInfo[] properties = args.GetType().GetProperties();
-
-            foreach (PropertyInfo? property in properties)
+            foreach (MultipartPropertyMetadata metadata in GetMultipartProperties(args.GetType()))
             {
-                object? value = property.GetValue(args);
+                object? value = metadata.Property.GetValue(args);
                 if (value is null || value.GetType().IsPrimitive || value is string)
                 {
                     continue;
