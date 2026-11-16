@@ -301,7 +301,7 @@ public partial class TelegramBotClient : ITelegramBotClient
                 switch (value)
                 {
                     case InputFile:
-                    case IDictionary<string, InputFile> files when files.Any():
+                    case IDictionary<string, InputFile> files when files.Count > 0:
                         return true;
                 }
             }
