@@ -29,6 +29,18 @@ public class DiscriminatorBenchmarks
         // Options and generated metadata are intentionally created once and reused.
         this.legacyOptions.Converters.Add(new LegacyMemberConverter());
         this.generatedOptions.Converters.Add(new GeneratedMemberConverter());
+
+        // Fail before timing if either implementation selects a different subtype or payload.
+        var legacy = JsonSerializer.Deserialize<LegacyMember>(Payload, this.legacyOptions);
+        var generated = JsonSerializer.Deserialize<GeneratedMember>(Payload, this.generatedOptions);
+        if (legacy is not LegacyMemberBasic legacyBasic ||
+            generated is not GeneratedMemberBasic generatedBasic ||
+            legacyBasic.Id != generatedBasic.Id ||
+            legacyBasic.FirstName != generatedBasic.FirstName ||
+            legacyBasic.Username != generatedBasic.Username)
+        {
+            throw new InvalidOperationException("The implementations produced different results.");
+        }
     }
 
     [Benchmark(Baseline = true, Description = "Current pattern: DOM + raw JSON + reflection")]
