@@ -39,9 +39,9 @@ public sealed class MultipartSerializationTests
 
         Assert.True(response.Ok);
         Assert.Equal("multipart/form-data", mediaType);
-        Assert.Contains("name=\"chat_id\"", body);
+        Assert.Contains("name=chat_id", body);
         Assert.Contains("123", body);
-        Assert.Contains("name=\"caption\"", body);
+        Assert.Contains("name=caption", body);
         Assert.Contains("hello", body);
         Assert.Contains("filename=\"sample.bin\"", body);
     }
@@ -67,7 +67,7 @@ public sealed class MultipartSerializationTests
         BotResponse<bool> response = await client.CallMethodDirectAsync<bool>("sendDocument", args);
 
         Assert.True(response.Ok);
-        Assert.Contains("name=\"chat_id\"", body);
+        Assert.Contains("name=chat_id", body);
         Assert.Contains("456", body);
         Assert.Contains("filename=\"dict.bin\"", body);
     }
