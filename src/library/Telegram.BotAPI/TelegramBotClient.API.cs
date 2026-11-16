@@ -172,7 +172,7 @@ public partial class TelegramBotClient : ITelegramBotClient
             }
 
             using Stream responseStream = await response.Content
-                .ReadAsStreamAsync(cancellationToken)
+                .ReadAsStreamAsync()
                 .ConfigureAwait(false);
             BotResponse<TReturn>? botResponse = await JsonSerializer
                 .DeserializeAsync<BotResponse<TReturn>>(
@@ -282,7 +282,7 @@ public partial class TelegramBotClient : ITelegramBotClient
             {
                 switch (item.Value)
                 {
-                    case IDictionary<string, InputFile> files when files.Any():
+                    case IDictionary<string, InputFile> files when files.Count > 0:
                     case InputFile:
                         return true;
                 }
