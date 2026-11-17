@@ -10,10 +10,14 @@ public sealed class OptimizedTelegramBotClientTests
     [Fact]
     public async Task JsonArguments_ArePostedWithJsonContentType()
     {
-        HttpRequestMessage? captured = null;
+        HttpMethod? method = null;
+        string? contentType = null;
+        string? body = null;
         using HttpClient httpClient = new(new StubHandler(request =>
         {
-            captured = request;
+            method = request.Method;
+            contentType = request.Content!.Headers.ContentType!.MediaType;
+            body = request.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             return JsonResponse("{\"ok\":true,\"result\":42}");
         }));
         TelegramBotClientOptions options = new("test-token", httpClient);
@@ -22,20 +26,20 @@ public sealed class OptimizedTelegramBotClientTests
         int result = await client.CallMethodAsync<int>("getValue", new { ChatId = 123 });
 
         Assert.Equal(42, result);
-        Assert.NotNull(captured);
-        Assert.Equal(HttpMethod.Post, captured!.Method);
-        Assert.Equal("application/json", captured.Content!.Headers.ContentType!.MediaType);
-        string body = await captured.Content.ReadAsStringAsync();
+        Assert.Equal(HttpMethod.Post, method);
+        Assert.Equal("application/json", contentType);
         Assert.Contains("\"ChatId\":123", body);
     }
 
     [Fact]
     public async Task StreamArguments_AreSentAsJsonStream()
     {
-        HttpRequestMessage? captured = null;
+        string? contentType = null;
+        string? body = null;
         using HttpClient httpClient = new(new StubHandler(request =>
         {
-            captured = request;
+            contentType = request.Content!.Headers.ContentType!.MediaType;
+            body = request.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             return JsonResponse("{\"ok\":true,\"result\":7}");
         }));
         TelegramBotClientOptions options = new("test-token", httpClient);
@@ -45,9 +49,8 @@ public sealed class OptimizedTelegramBotClientTests
         int result = await client.CallMethodAsync<int>("sendRaw", stream);
 
         Assert.Equal(7, result);
-        Assert.NotNull(captured);
-        Assert.Equal("application/json", captured!.Content!.Headers.ContentType!.MediaType);
-        Assert.Equal("{\"chat_id\":123}", await captured.Content.ReadAsStringAsync());
+        Assert.Equal("application/json", contentType);
+        Assert.Equal("{\"chat_id\":123}", body);
     }
 
     [Fact]
