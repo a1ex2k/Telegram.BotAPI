@@ -21,7 +21,7 @@ jobs:
         with:
           dotnet-version: 11.0.x
       - name: Run BenchmarkDotNet
-        run: dotnet run -c Release --project src/benchmarks/Telegram.BotAPI.Benchmarks/Telegram.BotAPI.Benchmarks.csproj -- --filter '*TelegramClientBenchmarks*'
+        run: dotnet run -c Release --project src/benchmarks/Telegram.BotAPI.Benchmarks/Telegram.BotAPI.Benchmarks.csproj -- --filter '*Benchmarks*'
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
