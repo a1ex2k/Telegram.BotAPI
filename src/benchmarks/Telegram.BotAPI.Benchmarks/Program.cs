@@ -1,3 +1,3 @@
 using BenchmarkDotNet.Running;
 
-BenchmarkRunner.Run<TelegramClientBenchmarks>();
+BenchmarkSwitcher.FromAssembly(typeof(TelegramClientBenchmarks).Assembly).Run(args);
