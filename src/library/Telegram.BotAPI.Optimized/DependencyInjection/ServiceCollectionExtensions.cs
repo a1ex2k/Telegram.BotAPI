@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Telegram.BotAPI;
 
@@ -19,13 +20,16 @@ public static class ServiceCollectionExtensions
             throw new ArgumentException("A bot token is required.", nameof(botToken));
 
         IHttpClientBuilder httpClientBuilder = services.AddHttpClient(HttpClientName);
+        services.TryAddSingleton<IUpdateResponseDeserializer, SourceGeneratedUpdateResponseDeserializer>();
         services.AddTransient<OptimizedTelegramBotClient>(provider =>
         {
             HttpClient httpClient = provider.GetRequiredService<IHttpClientFactory>()
                 .CreateClient(HttpClientName);
             TelegramBotClientOptions options = new(botToken, httpClient);
             configure?.Invoke(options);
-            return new OptimizedTelegramBotClient(options, httpClient);
+            IUpdateResponseDeserializer updateDeserializer =
+                provider.GetRequiredService<IUpdateResponseDeserializer>();
+            return new OptimizedTelegramBotClient(options, httpClient, updateDeserializer);
         });
         services.AddTransient<ITelegramBotClient>(provider =>
             provider.GetRequiredService<OptimizedTelegramBotClient>());
