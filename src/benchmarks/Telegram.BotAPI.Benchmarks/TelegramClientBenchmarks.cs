@@ -87,14 +87,19 @@ public class TelegramClientBenchmarks
 
     private sealed class StubHandler : HttpMessageHandler
     {
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request, CancellationToken cancellationToken) =>
-            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.Content is not null)
+                await request.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(
                     "{\"ok\":true,\"result\":1}",
                     Encoding.UTF8,
                     "application/json")
-            });
+            };
+        }
     }
 }
