@@ -23,8 +23,12 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
     /// <summary>Creates a client using the supplied options and HTTP client.</summary>
     public OptimizedTelegramBotClient(TelegramBotClientOptions options, HttpClient httpClient)
     {
-        this.options = options ?? throw new ArgumentNullException(nameof(options));
-        this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        if (options is null)
+            throw new ArgumentNullException(nameof(options));
+        if (httpClient is null)
+            throw new ArgumentNullException(nameof(httpClient));
+        this.options = options;
+        this.httpClient = httpClient;
     }
 
     TelegramBotClientOptions ITelegramBotClient.Options => options;
