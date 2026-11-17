@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>Telegram.BotAPI.Optimized</PackageId>
+    <Description>Optimized DI-enabled ITelegramBotClient implementation.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Telegram.BotAPI/Telegram.BotAPI.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="System.Text.Json" Version="10.0.11" />
+  </ItemGroup>
+</Project>
