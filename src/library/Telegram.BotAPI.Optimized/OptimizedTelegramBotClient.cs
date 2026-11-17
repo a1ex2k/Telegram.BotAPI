@@ -135,13 +135,15 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
 
     private static HttpContent CreateContent(object args)
     {
+        if (!ArgsHasFiles(args))
+            return new JsonHttpContent(args);
+
         MultipartFormDataContent multipart = new();
-        bool hasFiles = false;
 
         if (args is IDictionary<string, object?> dictionary)
         {
             foreach (KeyValuePair<string, object?> item in dictionary)
-                hasFiles |= AddMultipartValue(multipart, item.Key, item.Value);
+                AddMultipartValue(multipart, item.Key, item.Value);
         }
         else
         {
@@ -154,17 +156,39 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
 
                 JsonPropertyNameAttribute? jsonName = property.GetCustomAttribute<JsonPropertyNameAttribute>();
                 if (jsonName is not null)
-                    hasFiles |= AddMultipartValue(multipart, jsonName.Name, value);
+                    AddMultipartValue(multipart, jsonName.Name, value);
                 else if (value is IDictionary<string, InputFile> files)
-                    hasFiles |= AddFileDictionary(multipart, files);
+                    AddFileDictionary(multipart, files);
             }
         }
 
-        if (hasFiles)
-            return multipart;
+        return multipart;
+    }
 
-        multipart.Dispose();
-        return new JsonHttpContent(args);
+    private static bool ArgsHasFiles(object args)
+    {
+        if (args is IDictionary<string, object?> dictionary)
+        {
+            foreach (KeyValuePair<string, object?> item in dictionary)
+            {
+                if (item.Value is InputFile ||
+                    item.Value is IDictionary<string, InputFile> files && files.Count > 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        PropertyInfo[] properties = args.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        foreach (PropertyInfo property in properties)
+        {
+            object? value = property.GetValue(args);
+            if (value is InputFile ||
+                value is IDictionary<string, InputFile> files && files.Count > 0)
+                return true;
+        }
+
+        return false;
     }
 
     private static bool AddMultipartValue(MultipartFormDataContent content, string name, object? value)
