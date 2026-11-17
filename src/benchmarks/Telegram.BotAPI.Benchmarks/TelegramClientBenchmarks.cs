@@ -4,6 +4,7 @@ using BenchmarkDotNet.Attributes;
 using Telegram.BotAPI;
 
 [MemoryDiagnoser]
+[ShortRunJob]
 public class TelegramClientBenchmarks
 {
     private HttpClient originalHttpClient = null!;
