@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Telegram.BotAPI.AvailableTypes;
+using Telegram.BotAPI.GettingUpdates;
 
 namespace Telegram.BotAPI;
 
@@ -21,16 +22,26 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
 
     private readonly TelegramBotClientOptions options;
     private readonly HttpClient httpClient;
+    private readonly IUpdateResponseDeserializer updateResponseDeserializer;
 
     /// <summary>Creates a client using the supplied options and HTTP client.</summary>
     public OptimizedTelegramBotClient(TelegramBotClientOptions options, HttpClient httpClient)
+        : this(options, httpClient, new SourceGeneratedUpdateResponseDeserializer())
     {
-        if (options is null)
-            throw new ArgumentNullException(nameof(options));
-        if (httpClient is null)
-            throw new ArgumentNullException(nameof(httpClient));
+    }
+
+    /// <summary>Creates a client with a replaceable update response deserializer.</summary>
+    public OptimizedTelegramBotClient(
+        TelegramBotClientOptions options,
+        HttpClient httpClient,
+        IUpdateResponseDeserializer updateResponseDeserializer)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentNullException.ThrowIfNull(updateResponseDeserializer);
         this.options = options;
         this.httpClient = httpClient;
+        this.updateResponseDeserializer = updateResponseDeserializer;
         this.options.HttpClient = httpClient;
     }
 
@@ -111,7 +122,14 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
         }
 
         using Stream responseStream = await response.Content
-            .ReadAsStreamAsync().ConfigureAwait(false);
+            .ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+
+        if (typeof(TReturn) == typeof(IEnumerable<Update>))
+        {
+            BotResponse<IEnumerable<Update>> updateResponse = await updateResponseDeserializer
+                .DeserializeAsync(responseStream, cancellationToken).ConfigureAwait(false);
+            return (BotResponse<TReturn>)(object)updateResponse;
+        }
 
         return await JsonSerializer.DeserializeAsync<BotResponse<TReturn>>(
             responseStream, SerializerOptions, cancellationToken).ConfigureAwait(false)
