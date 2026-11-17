@@ -1,0 +1,29 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experimental/optimized-telegram-bot-client
+    paths:
+      - 'src/benchmarks/**'
+      - 'src/library/Telegram.BotAPI.Optimized/**'
+      - 'src/library/Telegram.BotAPI/**'
+      - '.github/workflows/benchmarks.yml'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Run BenchmarkDotNet
+        run: dotnet run -c Release --project src/benchmarks/Telegram.BotAPI.Benchmarks/Telegram.BotAPI.Benchmarks.csproj -- --filter '*TelegramClientBenchmarks*'
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: telegram-client-benchmarks
+          path: BenchmarkDotNet.Artifacts/
