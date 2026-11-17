@@ -10,6 +10,7 @@ namespace Telegram.BotAPI;
 /// </summary>
 public sealed class SourceGeneratedUpdateResponseDeserializer : IUpdateResponseDeserializer
 {
+    /// <inheritdoc />
     public async ValueTask<BotResponse<IEnumerable<Update>>> DeserializeAsync(
         Stream utf8Json,
         CancellationToken cancellationToken = default)
