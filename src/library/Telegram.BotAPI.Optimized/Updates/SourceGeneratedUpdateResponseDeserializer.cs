@@ -26,4 +26,6 @@ public sealed class SourceGeneratedUpdateResponseDeserializer : IUpdateResponseD
 
 [JsonSourceGenerationOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(BotResponse<IEnumerable<Update>>), TypeInfoPropertyName = "UpdateResponse")]
-internal partial class UpdateJsonSerializerContext : JsonSerializerContext;
+internal partial class UpdateJsonSerializerContext : JsonSerializerContext
+{
+}
