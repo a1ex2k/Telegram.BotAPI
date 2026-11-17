@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -74,7 +73,8 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
     private async Task<BotResponse<TReturn>> SendAsync<TReturn>(
         string method, object? args, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(method);
+        if (string.IsNullOrWhiteSpace(method))
+            throw new ArgumentException("The method name cannot be null or whitespace.", nameof(method));
         using HttpRequestMessage request = new(
             args is null ? HttpMethod.Get : HttpMethod.Post,
             BuildRequestUri(method));
@@ -101,8 +101,8 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
             // Telegram may return a Bot API error envelope with a non-success HTTP status.
         }
 
-        await using Stream responseStream = await response.Content
-            .ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        using Stream responseStream = await response.Content
+            .ReadAsStreamAsync().ConfigureAwait(false);
 
         return await JsonSerializer.DeserializeAsync<BotResponse<TReturn>>(
             responseStream, SerializerOptions, cancellationToken).ConfigureAwait(false)
