@@ -16,7 +16,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telegram.BotAPI.Extensions", "library\Telegram.BotAPI.Extensions\Telegram.BotAPI.Extensions.csproj", "{BA0FF392-07D4-4C31-866B-93865F4E1FF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telegram.BotAPI.Optimized", "library\\Telegram.BotAPI.Optimized\\Telegram.BotAPI.Optimized.csproj", "{C1F2B5D6-1A34-4C78-9E21-6D4F8A2B7C90}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telegram.BotAPI.Benchmarks", "benchmarks\\Telegram.BotAPI.Benchmarks\\Telegram.BotAPI.Benchmarks.csproj", "{D0C8B3F1-8D8D-4E93-A8C5-AB3D34E4B3F0}"\nEndProject\nProject("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telegram.BotAPI.Extensions", "library\Telegram.BotAPI.Extensions\Telegram.BotAPI.Extensions.csproj", "{BA0FF392-07D4-4C31-866B-93865F4E1FF2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

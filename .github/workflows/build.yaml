@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - experimental/optimized-telegram-bot-client
   pull_request:
     branches:
       - main
@@ -23,7 +24,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 11.0.x
 
       - name: Restore dependencies
         run: dotnet restore
