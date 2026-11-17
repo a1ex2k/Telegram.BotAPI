@@ -29,6 +29,7 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
             throw new ArgumentNullException(nameof(httpClient));
         this.options = options;
         this.httpClient = httpClient;
+        this.options.HttpClient = httpClient;
     }
 
     TelegramBotClientOptions ITelegramBotClient.Options => options;
