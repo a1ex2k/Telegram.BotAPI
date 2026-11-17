@@ -13,8 +13,10 @@ public static class ServiceCollectionExtensions
         string botToken,
         Action<TelegramBotClientOptions>? configure = null)
     {
-        ArgumentNullException.ThrowIfNull(services);
-        ArgumentException.ThrowIfNullOrWhiteSpace(botToken);
+        if (services is null)
+            throw new ArgumentNullException(nameof(services));
+        if (string.IsNullOrWhiteSpace(botToken))
+            throw new ArgumentException("A bot token is required.", nameof(botToken));
 
         IHttpClientBuilder httpClientBuilder = services.AddHttpClient(HttpClientName);
         services.AddTransient<OptimizedTelegramBotClient>(provider =>
