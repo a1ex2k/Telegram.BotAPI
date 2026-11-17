@@ -24,7 +24,7 @@
     <ProjectReference
       Include="..\..\library\Telegram.BotAPI.Extensions\Telegram.BotAPI.Extensions.csproj" />
     <ProjectReference Include="..\..\library\Telegram.BotAPI\Telegram.BotAPI.csproj" />
-    <ProjectReference Include="..\\..\\library\\Telegram.BotAPI.Optimized\\Telegram.BotAPI.Optimized.csproj" />
+    <ProjectReference Include="..\..\library\Telegram.BotAPI.Optimized\Telegram.BotAPI.Optimized.csproj" />
   </ItemGroup>
 
 </Project>
