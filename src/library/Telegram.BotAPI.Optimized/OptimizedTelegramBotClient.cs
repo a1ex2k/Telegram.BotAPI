@@ -1,4 +1,6 @@
+using System.IO;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -89,7 +91,9 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
             if (args.GetType().IsPrimitive || args is string)
                 throw new ArgumentException("The method arguments must be an object.", nameof(args));
 
-            request.Content = CreateContent(args);
+            request.Content = args is Stream stream
+                ? CreateStreamContent(stream)
+                : CreateContent(args);
         }
 
         using HttpResponseMessage response = await httpClient.SendAsync(
@@ -120,6 +124,13 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
             ? $"bot{options.BotToken}/test/{method}"
             : $"bot{options.BotToken}/{method}";
         return new Uri($"{options.ServerAddress.TrimEnd('/')}/{path}", UriKind.Absolute);
+    }
+
+    private static HttpContent CreateStreamContent(Stream stream)
+    {
+        StreamContent content = new(stream);
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        return content;
     }
 
     private static HttpContent CreateContent(object args)
@@ -185,8 +196,16 @@ public sealed class OptimizedTelegramBotClient : ITelegramBotClient
         return files.Count > 0;
     }
 
-    private sealed class JsonHttpContent(object value) : HttpContent
+    private sealed class JsonHttpContent : HttpContent
     {
+        private readonly object value;
+
+        public JsonHttpContent(object value)
+        {
+            this.value = value;
+            Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        }
+
         protected override Task SerializeToStreamAsync(Stream stream, TransportContext? context) =>
             JsonSerializer.SerializeAsync(stream, value, value.GetType(), SerializerOptions);
 
